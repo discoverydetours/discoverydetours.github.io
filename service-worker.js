@@ -1,9 +1,7 @@
-﻿const CACHE_NAME = 'dinos-digs-cache-v1';
+const CACHE_NAME = 'dinos-digs-cache-v1';
 const urlsToCache = [
   '/',
-  '/index.html', // Add the rest of your page URLs
-  '/styles.css', // Add your CSS files
-  '/scripts.js', // Add your JS files
+  '/index.html', // Ensure this is the correct path to your HTML file
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
   // Add any other assets you want to cache
