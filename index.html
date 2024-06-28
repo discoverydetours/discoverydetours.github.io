@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dinos Digs Detour</title>
+    <link rel="manifest" href="/manifest.json">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,13 +58,34 @@
             margin: 40px 0;
             border: 1px solid #ddd;
         }
+        .qr-code {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 100px;
+            height: auto;
+        }
     </style>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                }, (error) => {
+                    console.log('Service Worker registration failed:', error);
+                });
+            });
+        }
+    </script>
 </head>
 <body>
     <img src="dddbones.jpeg" alt="Dinos Digs Detour Bones">
     <h1>Dinos Digs Detour -- BETA VERSION</h1>
     <h2>*** We are still ironing out the paleoentomata (bugs) ***</h2>
     <h2>Find prehistoric fossil dig sites near you or on your trip.</h2>
+
+    <img src="dddqr.png" alt="QR Code" class="qr-code">
 
     <div>
         <a href="maps/fossil_mapdinosauria_pterosauria_ichthyosauria_plesiosauria_mosasaurus_crocodylomorpha_66_1000.html">
