@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-transform: uppercase; /* Convert text to uppercase */
+            color: #0066cc; /* Blue color */
+            font-weight: bold; /* Bold font */
+        }
+        .sections {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .section {
+            flex-basis: 45%;
+            box-sizing: border-box;
+            margin: 10px;
+            max-width: 300px; /* Limit section width */
+        }
+        .section img {
+            max-width: 25%; /* Half of the adjusted size */
+            height: auto;
+            display: block; /* Ensure image aligns properly */
+            margin: 0 auto; /* Center align the image */
+        }
+        .section p {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        a {
+            text-decoration: none;
+            color: #0066cc;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .section {
+                flex-basis: 100%;
+                max-width: 100%; /* Full width on smaller screens */
+                margin-bottom: 20px;
+            }
+            .section img {
+                max-width: 40%; /* Adjust image size for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Choose your detour</h1>
+    </div>
+    <div class="sections">
+        <div class="section">
+            <a href="dinodetours/dino.html">
+                <img src="images/dino.jpeg" alt="Dino Detours">
+                <p>Dino Detours</p>
+            </a>
+        </div>
+        <div class="section">
+            <a href="discovererdetours/discoverer.html">
+                <img src="images/discoverer.jpeg" alt="Discoverer Detours">
+                <p>Discoverer Detours</p>
+            </a>
+        </div>
+        <div class="section">
+            <a href="discoverymenu.html">
+                <img src="images/dugout.jpeg" alt="Dugout Detours">
+                <p>Dugout Detours (Coming Soon)</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+
