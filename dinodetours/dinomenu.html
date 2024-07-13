@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-transform: uppercase; /* Convert text to uppercase */
+            color: #008CBA; /* Blue color */
+        }
+        .menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            max-width: 100%;
+        }
+        .menu-item {
+            width: calc(50% - 20px);
+            margin-bottom: 20px;
+        }
+        .menu-item img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .menu-item div {
+            margin-top: 10px;
+        }
+        .more-info {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        a {
+            color: #008CBA; /* Blue color */
+            text-decoration: none;
+        }
+        a:hover {
+            color: #005f8d; /* Darker blue on hover */
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Choose Your Detour!</h1>
+
+    <div class="menu-container">
+        <div class="menu-item">
+            <a href="maps/fossil_mapdinosauria_pterosauria_ichthyosauria_plesiosauria_mosasaurus_crocodylomorpha_66_1000.html">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Tyrannosaurus_Rex_Holotype.jpg/375px-Tyrannosaurus_Rex_Holotype.jpg" alt="Dinos and Friends">
+                <div>Dinos and Friends</div>
+            </a>
+        </div>
+        <div class="menu-item">
+            <a href="maps/fossil_maptrilobita_66_1000.html">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Trilobite_Walliserops_trifurcatus.jpg/330px-Trilobite_Walliserops_trifurcatus.jpg" alt="Trilobites">
+                <div>Trilobites</div>
+            </a>
+        </div>
+        <div class="menu-item">
+            <a href="maps/fossil_mapmammalia_1_30.html">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Smilodon_populator_fossil%2C_Tellus_Science_Museum_1.jpg/800px-Smilodon_populator_fossil%2C_Tellus_Science_Museum_1.jpg" alt="Young Mammals">
+                <div>Young Mammals</div>
+            </a>
+        </div>
+        <div class="menu-item">
+            <a href="maps/fossil_mapmammalia_30_1000.html">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Morganucodon.jpg/1280px-Morganucodon.jpg" alt="Old Mammals">
+                <div>Old Mammals</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="more-info">
+        <p><a href="dinoinfo.html">More information about the maps</a></p>               
+         <p><a href="dinopaleo.html">More information about fossils and paleontology</a></p>  
+         <p><a href="../index.html">Click here for other Detours</a></p>                     
+    </div>
+
+</body>
+</html>
+
