@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trilobite Fossil Map</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #scroll-container {
+            width: 100%;
+            height: 100%;
+            overflow: scroll;
+            position: relative;
+        }
+        #map-container {
+            width: 150%;
+            height: 150%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        /* Scrollbar styles */
+        #scroll-container::-webkit-scrollbar {
+            width: 20px;
+            height: 20px;
+        }
+        #scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+        }
+        #scroll-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border: 1px solid #555;
+        }
+        #scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="scroll-container">
+        <div id="map-container">
+            <iframe src="fossil_mapmammalia_1_30.html"></iframe>
+        </div>
+    </div>
+</body>
+</html>
