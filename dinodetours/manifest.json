@@ -2,7 +2,7 @@
     "name": "DinoDetours",
     "short_name": "DinoDetours",
     "description": "Whether your journey is real or imagined, discover dinosaur detours along the way!",
-    "start_url": "/",
+    "start_url": "dino.html",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#000000",
