@@ -94,14 +94,14 @@
 <body>
     <a href="dinomenu.html"><h1>CHOOSE YOUR DETOUR!</h1></a>
     <a href="dinomenu.html"><img src="../images/dino.jpeg" alt="Dinos Digs Detour Bones"></a>
-    <h2>Welcome to Dino Detours.<br><span>Whether your journey is real or imagined, discover dinosaur detours along the way!</span></h2>
+    <h2>Welcome to Dino Detours.<br><span>Whether your journey is real or imagined, discover dinosaur detours along the way!!</span></h2>
 
     <p><a href="../info.html">Contact and Privacy Policy</a></p>
 
     <script>
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
+            navigator.serviceWorker.register('service-worker.js')
               .then(registration => {
                 console.log('ServiceWorker registration successful with scope: ', registration.scope);
               }, err => {
