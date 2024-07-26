@@ -3,7 +3,7 @@ self.addEventListener('install', event => {
       caches.open('your-cache-name').then(cache => {
         return cache.addAll([
           '/',
-          'dino.html',
+          'index.html',
           'dino_192x192.png',
           'dino_512x512.png'
         ]);
