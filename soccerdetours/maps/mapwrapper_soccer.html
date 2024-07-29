@@ -54,5 +54,13 @@
             <iframe src="mapsoccer.html"></iframe>
         </div>
     </div>
+    <script>
+        // Wait until the content is loaded
+        window.onload = function() {
+            var container = document.getElementById('scroll-container');
+            container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
+            container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
+        };
+    </script>
 </body>
 </html>
