@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NWS Weather Data for Multiple Locations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        td {
+            vertical-align: top;
+        }
+        .location {
+            font-weight: bold; /* Bold font for location names */
+        }
+        .temperature {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .wind {
+            font-size: 0.9em;
+            color: #555;
+        }
+        .wind-highlight {
+            background-color: #ff0; /* Yellow background for high wind speeds */
+            color: #000;
+        }
+        @media screen and (max-width: 768px) {
+            th, td {
+                font-size: 0.9em;
+                padding: 6px;
+            }
+            .temperature {
+                font-size: 1em;
+            }
+            .wind {
+                font-size: 0.8em;
+            }
+        }
+
+        /* Temperature color coding */
+        .temp-cold {
+            background-color: #00f; /* Blue for cold temperatures */
+            color: #fff;
+        }
+        .temp-cool {
+            background-color: #0ff; /* Light blue for cool temperatures */
+            color: #000;
+        }
+        .temp-mild {
+            background-color: #0f0; /* Light green for mild temperatures */
+            color: #000;
+        }
+        .temp-warm {
+            background-color: #ff0; /* Light yellow for warm temperatures */
+            color: #000;
+        }
+        .temp-hot {
+            background-color: #f00; /* Red for hot temperatures */
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>High Temperature and Wind Forecast</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th id="day1"></th>
+                <th id="day2"></th>
+                <th id="day3"></th>
+                <th id="day4"></th>
+                <th id="day5"></th>
+            </tr>
+        </thead>
+        <tbody id="weatherTableBody">
+            <tr><td class="location">Home</td></tr>
+            <tr><td class="location">Windsor</td></tr>
+            <tr><td class="location">Sausalito</td></tr>
+            <tr><td class="location">Dillon</td></tr>
+            <tr><td class="location">Crissy</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        const locations = [
+            { name: 'Home', lat: 38.36393805314537, lon: -122.68322033862641 },
+            { name: 'Windsor', lat: 38.54899253134255, lon: -122.81525394399723 },
+            { name: 'Sausalito', lat: 37.85829745311624, lon: -122.4835186321502 },
+            { name: 'Dillon', lat: 38.248425273146644, lon: -122.96639971954959 },
+            { name: 'Crissy', lat: 37.804559719874156, lon: -122.46575679337579 }
+        ];
+
+        function fetchForecast(lat, lon) {
+            const gridUrl = `https://api.weather.gov/points/${lat},${lon}`;
+            return fetch(gridUrl)
+                .then(response => response.json())
+                .then(data => fetch(data.properties.forecast))
+                .then(response => response.json())
+                .then(data => {
+                    // Extract the next 5 days of high temperature and wind speed from daytime periods
+                    const forecastData = [];
+                    let daysProcessed = 0;
+                    data.properties.periods.forEach(period => {
+                        if (period.isDaytime && daysProcessed < 5) {
+                            const windSpeed = parseInt(period.windSpeed.split(' ')[0], 10); // Extract speed number and convert to integer
+                            forecastData.push({
+                                day: period.name,
+                                highTemp: period.temperature,
+                                windSpeed: windSpeed
+                            });
+                            daysProcessed++;
+                        }
+                    });
+                    return forecastData;
+                });
+        }
+
+        function getTemperatureClass(temp) {
+            if (temp <= 32) return 'temp-cold';
+            if (temp <= 50) return 'temp-cool';
+            if (temp <= 70) return 'temp-mild';
+            if (temp <= 90) return 'temp-warm';
+            return 'temp-hot';
+        }
+
+        function updateTable(locationName, forecastData) {
+            const tableBody = document.getElementById('weatherTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+            let row;
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].getElementsByTagName('td')[0].textContent === locationName) {
+                    row = rows[i];
+                    break;
+                }
+            }
+
+            if (row) {
+                forecastData.forEach((data, index) => {
+                    const tempClass = getTemperatureClass(data.highTemp);
+                    const isDillonOrCrissy = (locationName === 'Dillon' || locationName === 'Crissy');
+                    const windClass = data.windSpeed > 15 ? 'wind-highlight' : '';
+                    const windHTML = isDillonOrCrissy ? `<div class="wind ${windClass}">Wind: ${data.windSpeed} mph</div>` : '';
+                    row.insertCell(index + 1).innerHTML = `
+                        <div class="temperature ${tempClass}">${data.highTemp}°F</div>
+                        ${windHTML}
+                    `;
+                });
+            }
+        }
+
+        function updateDaysHeader(forecastData) {
+            for (let i = 0; i < 5; i++) {
+                document.getElementById(`day${i + 1}`).innerText = forecastData[i].day;
+            }
+        }
+
+        // Fetch and display weather data for all locations
+        Promise.all(locations.map(location => fetchForecast(location.lat, location.lon)))
+            .then(allForecasts => {
+                // Update table headers with the days (use the first location's days)
+                if (allForecasts.length > 0) {
+                    updateDaysHeader(allForecasts[0]);
+                }
+
+                // Update the table with data for each location
+                allForecasts.forEach((forecastData, index) => {
+                    updateTable(locations[index].name, forecastData);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching weather data:', error);
+            });
+    </script>
+</body>
+</html>
