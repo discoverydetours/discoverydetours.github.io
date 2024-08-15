@@ -37,7 +37,7 @@
             color: #555;
         }
         .wind-highlight {
-            background-color: #ff0; /* Yellow background for high wind speeds */
+            background-color: rgb(255, 0, 0); /* RED background for high wind speeds */
             color: #000;
         }
         @media screen and (max-width: 768px) {
@@ -114,12 +114,13 @@
                 .then(data => fetch(data.properties.forecast))
                 .then(response => response.json())
                 .then(data => {
-                    // Extract the next 5 days of high temperature and wind speed from daytime periods
+                    // Extract the next 5 days of high temperature and maximum wind speed from daytime periods
                     const forecastData = [];
                     let daysProcessed = 0;
                     data.properties.periods.forEach(period => {
                         if (period.isDaytime && daysProcessed < 5) {
-                            const windSpeed = parseInt(period.windSpeed.split(' ')[0], 10); // Extract speed number and convert to integer
+                            const windSpeedMatch = period.windSpeed.match(/(\d+) mph/);
+                            const windSpeed = windSpeedMatch ? parseInt(windSpeedMatch[1], 10) : 0; // Extract speed number
                             forecastData.push({
                                 day: period.name,
                                 highTemp: period.temperature,
@@ -133,10 +134,10 @@
         }
 
         function getTemperatureClass(temp) {
-            if (temp <= 32) return 'temp-cold';
-            if (temp <= 50) return 'temp-cool';
+            if (temp <= 50) return 'temp-cold';
+            if (temp <= 60) return 'temp-cool';
             if (temp <= 70) return 'temp-mild';
-            if (temp <= 90) return 'temp-warm';
+            if (temp <= 80) return 'temp-warm';
             return 'temp-hot';
         }
 
