@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10-Day Weather Forecast for Gustavus, AK</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 1.5em;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .result {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="result" class="result"></div>
+    <h1>10-Day Weather Forecast for Gustavus, AK</h1>
+    
+    <table id="forecast-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>High Temp (°F)</th>
+                <th>Forecast</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Forecast data will be inserted here -->
+        </tbody>
+    </table>
+    <p id="error-message" class="error"></p>
+
+    <script>
+        const lat = 58.41;
+        const lon = -135.75;
+
+        // Fetch weather forecast for Gustavus, AK
+        function fetchForecast(lat, lon) {
+            const gridUrl = `https://api.weather.gov/points/${lat},${lon}`;
+            return fetch(gridUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch grid data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const forecastUrl = data.properties.forecast;
+                    return fetch(forecastUrl)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to fetch forecast data');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Check structure of the data and log it for debugging
+                            console.log(data);
+                            // Extract next 10 days of forecast
+                            const periods = data.properties.periods || [];
+                            if (periods.length === 0) {
+                                throw new Error('No forecast periods found');
+                            }
+                            return periods.slice(0, 10).map(period => ({
+                                date: period.startTime ? new Date(period.startTime).toISOString().split('T')[0] : 'N/A',
+                                highTemp: period.temperature || 'N/A',
+                                forecast: period.shortForecast || 'No forecast available'
+                            }));
+                        });
+                });
+        }
+
+        function updatePage(forecastData) {
+            const tableBody = document.querySelector('#forecast-table tbody');
+            tableBody.innerHTML = forecastData.map(period => `
+                <tr>
+                    <td>${period.date}</td>
+                    <td>${period.highTemp}°F</td>
+                    <td>${period.forecast}</td>
+                </tr>
+            `).join('');
+
+            // Check conditions for GO or NO GO
+            const highTemps = forecastData.slice(2, 10).map(period => parseFloat(period.highTemp) || 0);
+            const rainDays = forecastData.slice(2, 10).filter(period => /rain/i.test(period.forecast)).length;
+
+            const allAbove50 = highTemps.every(temp => temp > 50);
+            const oneOrLessRain = rainDays <= 1;
+
+            const result = allAbove50 && oneOrLessRain ? 'GO' : 'NO GO';
+            document.getElementById('result').textContent = result;
+        }
+
+        function displayError(message) {
+            document.getElementById('error-message').textContent = message;
+        }
+
+        // Fetch and display weather data for Gustavus, AK
+        fetchForecast(lat, lon)
+            .then(forecastData => updatePage(forecastData))
+            .catch(error => {
+                console.error('Error fetching weather data:', error);
+                displayError('Error fetching weather data. Please check the console for details.');
+            });
+    </script>
+</body>
+</html>
