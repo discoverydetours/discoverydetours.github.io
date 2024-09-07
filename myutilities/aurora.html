@@ -17,22 +17,29 @@
             margin: 10px 0;
         }
         .summary {
-            font-size: 1.2em;
+            font-size: 2em;
             font-weight: bold;
+            text-align: center;
             margin-top: 20px;
+        }
+        .aurora-yes {
+            color: green;
+        }
+        .aurora-no {
+            color: red;
         }
     </style>
 </head>
 <body>
     <h1>Weather and KP Index Forecast for Aurora Trip</h1>
-    
+
+    <div class="summary" id="aurora-result"></div>
+
     <h2>Weather in 3 Days in Anchorage</h2>
     <p id="lowTemp"></p>
     <p id="cloudiness"></p>
 
     <p id="kpIndex"></p>
-
-    <p class="summary" id="summary"></p>
 
     <script>
         const lat = 64.83;
@@ -88,21 +95,6 @@
             }
         }
 
-        function sendWebhook(result) {
-            const webhookUrl = "YOUR_ZAPIER_WEBHOOK_URL"; // Replace with your Zapier webhook URL
-            fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ result: result })
-            }).then(response => {
-                console.log('Webhook sent successfully:', response);
-            }).catch(error => {
-                console.error('Error sending webhook:', error);
-            });
-        }
-
         function updatePage(forecastData, kpValue) {
             document.getElementById('lowTemp').textContent = `Low Temperature: ${forecastData.lowTemp}°F`;
             document.getElementById('cloudiness').textContent = `Cloudiness: ${forecastData.cloudiness}`;
@@ -112,12 +104,9 @@
             const kpAbove5 = kpValue > 5;
             const validCloudiness = cloudinessConditions.includes(forecastData.cloudiness);
 
-            const summaryElement = document.getElementById('summary');
-            const result = (tempAbove10 && kpAbove5 && validCloudiness) ? "Go FOR IT" : "No Go";
-            summaryElement.textContent = result;
-
-            // Send webhook with result
-            sendWebhook(result);
+            const auroraResult = (tempAbove10 && kpAbove5 && validCloudiness) ? "Aurora: YES" : "Aurora: NO";
+            const auroraClass = (tempAbove10 && kpAbove5 && validCloudiness) ? 'aurora-yes' : 'aurora-no';
+            document.getElementById('aurora-result').innerHTML = `<span class="${auroraClass}">${auroraResult}</span>`;
         }
 
         async function main() {

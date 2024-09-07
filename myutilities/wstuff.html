@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Weather Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrollbars on the body */
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            display: block;
+        }
+        #top-frame {
+            flex: 1;
+        }
+        #bottom-frames {
+            display: flex;
+            flex: 1;
+            gap: 10px;
+        }
+        .bottom-frame {
+            flex: 1;
+            min-height: 50vh; /* Ensure minimum height for bottom frames */
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <iframe id="top-frame" src="https://discoverydetours.github.io/myutilities/ericweather.html"></iframe>
+        <div id="bottom-frames">
+            <iframe class="bottom-frame" src="https://discoverydetours.github.io/myutilities/cruise.html"></iframe>
+            <iframe class="bottom-frame" src="https://discoverydetours.github.io/myutilities/aurora.html"></iframe>
+        </div>
+    </div>
+</body>
+</html>

@@ -31,6 +31,12 @@
             text-align: center;
             margin-top: 20px;
         }
+        .go {
+            color: green;
+        }
+        .no-go {
+            color: red;
+        }
         .error {
             color: red;
         }
@@ -78,8 +84,6 @@
                             return response.json();
                         })
                         .then(data => {
-                            // Check structure of the data and log it for debugging
-                            console.log(data);
                             // Extract next 10 days of forecast
                             const periods = data.properties.periods || [];
                             if (periods.length === 0) {
@@ -111,8 +115,9 @@
             const allAbove50 = highTemps.every(temp => temp > 50);
             const oneOrLessRain = rainDays <= 1;
 
-            const result = allAbove50 && oneOrLessRain ? 'GO' : 'NO GO';
-            document.getElementById('result').textContent = result;
+            const result = allAbove50 && oneOrLessRain ? 'Cruise: YES' : 'Cruise: NO';
+            const resultClass = allAbove50 && oneOrLessRain ? 'go' : 'no-go';
+            document.getElementById('result').innerHTML = `<span class="${resultClass}">${result}</span>`;
         }
 
         function displayError(message) {
