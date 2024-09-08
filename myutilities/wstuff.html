@@ -6,33 +6,28 @@
     <title>Combined Weather Information</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             overflow: hidden; /* Prevent scrollbars on the body */
+            height: 100vh; /* Ensure body takes full height */
         }
         #container {
             display: flex;
             flex-direction: column;
-            width: 100vw;
-            height: 100vh;
-        }
-        iframe {
-            border: none;
-            width: 100%;
-            display: block;
+            height: 100vh; /* Full viewport height */
         }
         #top-frame {
-            flex: 1;
+            flex: 1; /* Take up remaining space */
+            display: flex;
         }
         #bottom-frames {
             display: flex;
-            flex: 1;
-            gap: 10px;
+            flex: 1; /* Take up remaining space */
         }
-        .bottom-frame {
-            flex: 1;
-            min-height: 50vh; /* Ensure minimum height for bottom frames */
+        iframe {
+            border: none;
+            width: 50%; /* Each iframe takes up 50% of the width */
+            height: 100%; /* Full height of the container */
         }
     </style>
 </head>
@@ -40,8 +35,8 @@
     <div id="container">
         <iframe id="top-frame" src="https://discoverydetours.github.io/myutilities/ericweather.html"></iframe>
         <div id="bottom-frames">
-            <iframe class="bottom-frame" src="https://discoverydetours.github.io/myutilities/cruise.html"></iframe>
-            <iframe class="bottom-frame" src="https://discoverydetours.github.io/myutilities/aurora.html"></iframe>
+            <iframe src="https://discoverydetours.github.io/myutilities/cruise.html"></iframe>
+            <iframe src="https://discoverydetours.github.io/myutilities/aurora.html"></iframe>
         </div>
     </div>
 </body>
