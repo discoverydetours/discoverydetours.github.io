@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Forecast</title>
+    <meta name="aurora-status" content="Aurora: NO">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,7 +38,15 @@
     </style>
 </head>
 <body>
-    <div class="summary" id="aurora-result"></div>
+    <div class="summary" id="aurora-result"><span class="aurora-no">Aurora: NO</span></div>
+    <!-- Links added below the aurora status -->
+    <p>
+        <a href="https://www.swpc.noaa.gov/communities/aurora-dashboard-experimental" target="_blank">Aurora Dashboard (NOAA)</a>
+    </p>
+    <p>
+        <a href="https://forecast.weather.gov/MapClick.php?lat=64.836661&lon=-147.738891" target="_blank">Weather Forecast (Anchorage)</a>
+    </p>
+
     <p id="status" class="status-hidden"></p> <!-- Hidden element for status -->
     
     <h1>Weather and KP Index Forecast for Aurora Trip</h1>
