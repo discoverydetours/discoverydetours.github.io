@@ -31,10 +31,14 @@
         .aurora-no {
             color: red;
         }
+        .status-hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="summary" id="aurora-result"></div>
+    <p id="status" class="status-hidden"></p> <!-- Hidden element for status -->
     
     <h1>Weather and KP Index Forecast for Aurora Trip</h1>
     
@@ -110,6 +114,9 @@
             const auroraResult = (tempAbove10 && kpAbove5 && validCloudiness) ? "Aurora: YES" : "Aurora: NO";
             const auroraClass = (tempAbove10 && kpAbove5 && validCloudiness) ? 'aurora-yes' : 'aurora-no';
             document.getElementById('aurora-result').innerHTML = `<span class="${auroraClass}">${auroraResult}</span>`;
+
+            // Set the status in the hidden element
+            document.getElementById('status').textContent = auroraResult;
         }
 
         async function main() {

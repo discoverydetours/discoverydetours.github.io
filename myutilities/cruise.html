@@ -44,6 +44,7 @@
 </head>
 <body>
     <div id="result" class="result"></div>
+    <p id="status" style="display:none;"></p> <!-- Hidden element for status -->
     <h1>10-Day Weather Forecast for Gustavus, AK</h1>
     
     <table id="forecast-table">
@@ -64,7 +65,6 @@
         const lat = 58.41;
         const lon = -135.75;
 
-        // Fetch weather forecast for Gustavus, AK
         function fetchForecast(lat, lon) {
             const gridUrl = `https://api.weather.gov/points/${lat},${lon}`;
             return fetch(gridUrl)
@@ -84,7 +84,6 @@
                             return response.json();
                         })
                         .then(data => {
-                            // Extract next 10 days of forecast
                             const periods = data.properties.periods || [];
                             if (periods.length === 0) {
                                 throw new Error('No forecast periods found');
@@ -108,7 +107,6 @@
                 </tr>
             `).join('');
 
-            // Check conditions for GO or NO GO
             const highTemps = forecastData.slice(2, 10).map(period => parseFloat(period.highTemp) || 0);
             const rainDays = forecastData.slice(2, 10).filter(period => /rain/i.test(period.forecast)).length;
 
@@ -118,13 +116,15 @@
             const result = allAbove50 && oneOrLessRain ? 'Cruise: YES' : 'Cruise: NO';
             const resultClass = allAbove50 && oneOrLessRain ? 'go' : 'no-go';
             document.getElementById('result').innerHTML = `<span class="${resultClass}">${result}</span>`;
+
+            // Set the status in the hidden element
+            document.getElementById('status').textContent = result;
         }
 
         function displayError(message) {
             document.getElementById('error-message').textContent = message;
         }
 
-        // Fetch and display weather data for Gustavus, AK
         fetchForecast(lat, lon)
             .then(forecastData => updatePage(forecastData))
             .catch(error => {
