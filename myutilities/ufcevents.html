@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>UFC Events List</title>
+</head>
+<body>
+  <h1>UFC Events</h1>
+  <ul id="eventList"></ul>
+
+  <script>
+    const proxy = 'https://cors-anywhere.herokuapp.com/';
+    const url = 'https://en.wikipedia.org/wiki/List_of_UFC_events';
+
+    fetch(proxy + url)
+      .then(res => res.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const tableRows = doc.querySelectorAll('table.wikitable tbody tr');
+        const list = document.getElementById('eventList');
+
+        tableRows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 2) {
+            const linkElem = cells[0].querySelector('a');
+            const dateElem = cells[1].querySelector('span');
+
+            if (linkElem && dateElem) {
+              const li = document.createElement('li');
+              const a = document.createElement('a');
+              a.href = 'https://en.wikipedia.org' + linkElem.getAttribute('href');
+              a.textContent = linkElem.textContent;
+              a.target = '_blank';
+
+              li.appendChild(a);
+              li.appendChild(document.createTextNode(' — ' + dateElem.textContent));
+              list.appendChild(li);
+            }
+          }
+        });
+      })
+      .catch(err => console.error('Fetch error:', err));
+  </script>
+</body>
+</html>
