@@ -1,45 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>UFC Events List</title>
+    <meta charset="UTF-8">
+    <title>UFC Past Events Scraper</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { border-collapse: collapse; margin: 20px 0; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; }
+        th { background: #eee; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        button { padding: 4px 10px; }
+    </style>
 </head>
 <body>
-  <h1>UFC Events</h1>
-  <ul id="eventList"></ul>
+    <h1>UFC Past Events </h1>
+    <table id="ufc-events">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Event Name</th>
+                <th>Date</th>
+                <th>Fights</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="4">Loading...</td></tr>
+        </tbody>
+    </table>
 
-  <script>
-    const proxy = 'https://cors-anywhere.herokuapp.com/';
-    const url = 'https://en.wikipedia.org/wiki/List_of_UFC_events';
+<script>
+(async function() {
+    const tableBody = document.querySelector('#ufc-events tbody');
+    // Fetch Wikipedia page HTML via API
+    const url = 'https://en.wikipedia.org/w/api.php?action=parse&page=List_of_UFC_events&format=json&origin=*';
+    const response = await fetch(url);
+    const data = await response.json();
+    // Parse the returned HTML
+    const html = data.parse.text['*'];
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    // Find the "Past events" table by its id
+    const pastEventsTable = tempDiv.querySelector('table#Past_events');
+    if (!pastEventsTable) {
+        tableBody.innerHTML = '<tr><td colspan="4">Could not find Past events table.</td></tr>';
+        return;
+    }
+    const rows = pastEventsTable.querySelectorAll('tbody tr');
+    tableBody.innerHTML = ''; // Clear loading message
 
-    fetch(proxy + url)
-      .then(res => res.text())
-      .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const tableRows = doc.querySelectorAll('table.wikitable tbody tr');
-        const list = document.getElementById('eventList');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 2) {
+            // Number
+            const eventNumber = cells[0].textContent.trim();
+            // Event name and link
+            const link = cells[1].querySelector('a');
+            const eventName = link ? link.textContent.trim() : '';
+            const eventHref = link ? link.getAttribute('href') : '';
+            // Date
+            const dateSpan = cells[2].querySelector('span');
+            const eventDate = dateSpan ? dateSpan.textContent.trim() : cells[2].textContent.trim();
 
-        tableRows.forEach(row => {
-          const cells = row.querySelectorAll('td');
-          if (cells.length >= 2) {
-            const linkElem = cells[0].querySelector('a');
-            const dateElem = cells[1].querySelector('span');
-
-            if (linkElem && dateElem) {
-              const li = document.createElement('li');
-              const a = document.createElement('a');
-              a.href = 'https://en.wikipedia.org' + linkElem.getAttribute('href');
-              a.textContent = linkElem.textContent;
-              a.target = '_blank';
-
-              li.appendChild(a);
-              li.appendChild(document.createTextNode(' — ' + dateElem.textContent));
-              list.appendChild(li);
+            if (eventName && eventDate) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${eventNumber}</td>
+                    <td><a href="https://en.wikipedia.org${eventHref}" target="_blank">${eventName}</a></td>
+                    <td>${eventDate}</td>
+                    <td>
+                        <button onclick="window.open('fights.html?event=${encodeURIComponent(eventHref)}', '_blank')">
+                            Fights
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
             }
-          }
-        });
-      })
-      .catch(err => console.error('Fetch error:', err));
-  </script>
+        }
+    });
+})();
+</script>
 </body>
 </html>

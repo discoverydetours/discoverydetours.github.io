@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>UFC Event Fights</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { border-collapse: collapse; margin: 20px 0; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; }
+        th { background: #eee; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .fighters-col {
+            background: #ffe;
+            color: #222;
+            font-weight: bold;
+            cursor: default;
+        }
+        .blinded, .blinded * {
+            background: #000 !important;
+            color: #000 !important;
+            text-shadow: none !important;
+            border-color: #000 !important;
+        }
+        .blinded.revealed, .blinded.revealed * {
+            color: inherit !important;
+            background: inherit !important;
+            text-shadow: inherit !important;
+            border-color: inherit !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fights for Event</h1>
+    <p id="reveal-instruction" style="font-style: italic; color: #555; margin-top: -10px;">Click on blinded items to reveal.</p>
+    <div id="results-table">Loading fights...</div>
+<script>
+(async function() {
+    const params = new URLSearchParams(window.location.search);
+    const eventPath = params.get('event');
+    if (!eventPath) {
+        document.getElementById('results-table').textContent = 'No event specified.';
+        return;
+    }
+    const pageName = eventPath.replace('/wiki/', '');
+    const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageName)}&format=json&origin=*`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const html = data.parse.text['*'];
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        // Find the Results heading
+        let resultsTable = null;
+        const headings = tempDiv.querySelectorAll('h2');
+        let resultsHeading = null;
+        for (let h of headings) {
+            if (h.querySelector('span#Results')) {
+                resultsHeading = h;
+                break;
+            }
+        }
+        if (resultsHeading) {
+            let el = resultsHeading.nextSibling;
+            while (el) {
+                if (el.nodeType === 1 && el.tagName === 'TABLE' && el.classList.contains('toccolours')) {
+                    resultsTable = el;
+                    break;
+                }
+                el = el.nextSibling;
+            }
+        }
+        if (!resultsTable) {
+            resultsTable = tempDiv.querySelector('table.toccolours');
+        }
+        if (!resultsTable) {
+            document.getElementById('results-table').textContent = 'No results table found for this event.';
+            return;
+        }
+
+        // Clone table
+        const clone = resultsTable.cloneNode(true);
+
+        // Add new first column header (fighters)
+        const thead = clone.querySelector('thead') || clone.createTHead();
+        const headerRow = thead.rows[0];
+        if (headerRow) {
+            const thFighters = document.createElement('th');
+            thFighters.textContent = 'Fighters (A-Z)';
+            thFighters.className = 'fighters-col';
+            headerRow.insertBefore(thFighters, headerRow.firstChild);
+
+            const thMethod = document.createElement('th');
+            thMethod.textContent = '';
+            headerRow.insertBefore(thMethod, headerRow.children[1]);
+        }
+
+        // Add fighters and new column to each row
+        const rows = clone.querySelectorAll('tbody tr');
+        rows.forEach((row, rowIndex) => {
+            // Insert Fighters column
+            let fightersCell = document.createElement('td');
+            fightersCell.className = 'fighters-col';
+            const cells = row.querySelectorAll('td,th');
+            if (cells.length >= 4) {
+                let fighter1 = cells[1].textContent.trim();
+                let fighter2 = cells[3].textContent.trim();
+                if (fighter1.toLowerCase() === "def.") fighter1 = "";
+                if (fighter2.toLowerCase() === "def.") fighter2 = "";
+                let fighters = "";
+                if (fighter1 && fighter2) {
+                    fighters = [fighter1, fighter2].sort((a,b) => a.localeCompare(b)).join(', ');
+                }
+                fightersCell.textContent = fighters;
+            }
+            row.insertBefore(fightersCell, row.firstChild);
+
+            // Insert new column with Yes/No if first word of (original) 7th column (now index 4) is Decision
+            let newCell = document.createElement('td');
+            if (rowIndex === 1) {
+                newCell.textContent = 'Decision';
+                newCell.style.fontWeight = 'bold';
+                newCell.style.background = '#ffe';
+                newCell.style.color = '#222';
+            } else if (cells.length > 4) {
+                let methodCell = cells[4];
+                let methodText = methodCell ? methodCell.textContent.trim() : '';
+                let firstWord = methodText.split(/\s+/)[0];
+                newCell.textContent = (firstWord === "Decision") ? "Yes" : "No";
+            } else {
+                newCell.textContent = '';
+            }
+            row.insertBefore(newCell, row.children[1]);
+        });
+
+        // Modify 2nd row: 4th cell "Winner", 6th cell "Loser" (shifted by two new columns)
+        if (rows.length > 1) {
+            const tds = rows[1].querySelectorAll('td,th');
+            if (tds.length > 5) {
+                tds[3].textContent = 'Winner';
+                tds[5].textContent = 'Loser';
+            }
+        }
+
+        // BLINDING LOGIC
+        // Go through all rows and cells
+        const allRows = clone.querySelectorAll('tr');
+        allRows.forEach((row, rowIdx) => {
+            // Always keep first two rows visible
+            if (rowIdx < 2) return;
+            const cells = row.querySelectorAll('td,th');
+            cells.forEach((cell, colIdx) => {
+                // Only keep first and third columns visible (0-based)
+                if (colIdx === 0 || colIdx === 2) return;
+                // Blind this cell
+                cell.classList.add('blinded');
+            });
+        });
+
+        // Add click event to reveal blinded cells
+        clone.addEventListener('click', function(e) {
+            if (e.target.classList.contains('blinded')) {
+                e.target.classList.add('revealed');
+            }
+        });
+
+        document.getElementById('results-table').innerHTML = '';
+        document.getElementById('results-table').appendChild(clone);
+
+        if (data.parse.title) {
+            document.querySelector('h1').textContent = `Fights for ${data.parse.title}`;
+        }
+    } catch (e) {
+        document.getElementById('results-table').textContent = 'Error loading or parsing event data.';
+    }
+})();
+</script>
+</body>
+</html>
