@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8" />
+ <title>SpoilerGuard MMA Event</title>
+ <style>
+ body { font-family: Arial, sans-serif; }
+ .icon-header {
+ display: flex;
+ justify-content: center;
+ margin-top: 20px;
+ margin-bottom: 10px;
+ }
+ .icon-header img {
+ height: 60px;
+ width: auto;
+ display: block;
+ }
+ table { border-collapse: collapse; margin: 20px 0; width: 100%; }
+ th, td { border: 1px solid #ccc; padding: 6px 10px; }
+ th { background: #eee; position: relative; }
+ tr:nth-child(even) { background: #f9f9f9; }
+ .fighters-col {
+ background: #ffe;
+ color: #222;
+ font-weight: bold;
+ cursor: default;
+ }
+ 
+ /* Column unblind buttons */
+ .unblind-btn {
+   background: #555;
+   color: white;
+   border: none;
+   border-radius: 4px;
+   padding: 4px 8px;
+   cursor: pointer;
+   font-size: 11px;
+   width: 80%;
+   margin: 0 auto;
+   display: block;
+ }
+ 
+ .unblind-btn:hover {
+   background: #777;
+ }
+ 
+ .button-row td {
+   text-align: center;
+   background: #f0f0f0;
+ }
+
+ /* --- CURSOR FIX --- */
+ td, th, td a, th a {
+ cursor: default !important;
+ }
+ .blinded, .blinded * {
+ background: #000 !important;
+ color: #000 !important;
+ text-shadow: none !important;
+ border: 2px solid #444 !important;
+ border-radius: 4px;
+ cursor: pointer !important;
+ padding: 4px 8px !important;
+ margin: 2px !important;
+ box-sizing: border-box;
+ position: relative;
+ }
+ .blinded::after {
+ content: "";
+ position: absolute;
+ top: 50%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ color: #888;
+ font-size: 1.1em;
+ pointer-events: none;
+ opacity: 0.7;
+ }
+ .blinded.revealed, .blinded.revealed * {
+ color: inherit !important;
+ background: inherit !important;
+ text-shadow: inherit !important;
+ border-color: inherit !important;
+ padding: inherit !important;
+ margin: inherit !important;
+ cursor: default !important;
+ transition: none !important;
+ }
+ .blinded.revealed::after {
+ display: none;
+ }
+ /* Bonus awards styling */
+ #bonus-awards-container {
+   margin-bottom: 20px;
+   text-align: left;
+ }
+ #bonus-awards {
+   display: none;
+   margin-top: 10px;
+   border: 1px solid #ccc;
+   padding: 10px;
+   background: #f7f7f7;
+   max-width: 700px;
+ }
+ #toggle-bonus-btn {
+   background: #2874A6;
+   color: #fff;
+   border: none;
+   border-radius: 4px;
+   padding: 8px 16px;
+   font-size: 15px;
+   cursor: pointer;
+   margin-bottom: 5px;
+ }
+ #toggle-bonus-btn:hover {
+   background: #1A5276;
+ }
+ </style>
+</head>
+<body>
+ <div class="icon-header">
+   <img src="sgicon.png" alt="SpoilerGuard Icon" style="width: 10%; height: 10%;" />
+ </div>
+ <h1>SpoilerGuard MMA Event</h1>
+ <p id="reveal-instruction" style="font-style: italic; color: #555; margin-top: -10px;">Click on blinded items to reveal individually, or use the "Reveal All" buttons to reveal entire columns at once.</p>
+ 
+ <!-- Bonus Awards Button and Section -->
+ <div id="bonus-awards-container">
+   <button id="toggle-bonus-btn" style="display:none;">Bonus Awards</button>
+   <div id="bonus-awards"></div>
+ </div>
+ 
+ <div id="results-table">Loading fights...</div>
+<script>
+(async function() {
+ const params = new URLSearchParams(window.location.search);
+ const eventPath = params.get('event');
+ if (!eventPath) {
+   document.getElementById('results-table').textContent = 'No event specified.';
+   return;
+ }
+ const pageName = eventPath.replace('/wiki/', '');
+ const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageName)}&format=json&origin=*`;
+
+ // Helper function to fix Wikipedia links
+ function fixWikipediaLink(linkElement) {
+   if (!linkElement) return null;
+   const href = linkElement.getAttribute('href');
+   return href.startsWith('/wiki/') ? `https://en.wikipedia.org${href}` : href;
+ }
+
+ try {
+   const response = await fetch(url);
+   const data = await response.json();
+   const html = data.parse.text['*'];
+   const tempDiv = document.createElement('div');
+   tempDiv.innerHTML = html;
+
+   // --- Bonus Awards Extraction ---
+   const bonusBtn = document.getElementById('toggle-bonus-btn');
+const bonusDiv = document.getElementById('bonus-awards');
+
+let bonusHeading = null;
+const h2s = tempDiv.querySelectorAll('h2');
+for (let h of h2s) {
+  let headingText = h.textContent || '';
+  headingText = headingText.replace(/\[edit\]/gi, '').trim();
+  if (headingText.toLowerCase().includes('bonus awards')) {
+    bonusHeading = h;
+    break;
+  }
+}
+
+if (bonusHeading) {
+  // Start from the next element sibling (skip text nodes)
+  let el = bonusHeading.nextElementSibling;
+  let bonusHTML = '';
+
+  // Collect all siblings until next h2 or h1
+  while (el && !(el.tagName && el.tagName.match(/^H[12]$/))) {
+    bonusHTML += el.outerHTML;
+    el = el.nextElementSibling;
+  }
+
+  // Remove any [edit] spans inside
+  bonusHTML = bonusHTML.replace(/<span class="mw-editsection">.*?<\/span>/g, '');
+
+  if (bonusHTML.trim()) {
+    bonusDiv.innerHTML = bonusHTML;
+    bonusBtn.style.display = '';
+    bonusBtn.onclick = function() {
+      if (bonusDiv.style.display === "none" || bonusDiv.style.display === "") {
+        bonusDiv.style.display = "block";
+        bonusBtn.textContent = "Hide Bonus Awards";
+      } else {
+        bonusDiv.style.display = "none";
+        bonusBtn.textContent = "Bonus Awards";
+      }
+    };
+    bonusDiv.style.display = "none";
+    bonusBtn.textContent = "Bonus Awards";
+  }
+}
+
+
+   // Find the Results heading
+   let resultsTable = null;
+   const headings = tempDiv.querySelectorAll('h2');
+   let resultsHeading = null;
+   for (let h of headings) {
+     if (h.querySelector('span#Results')) {
+       resultsHeading = h;
+       break;
+     }
+   }
+   if (resultsHeading) {
+     let el = resultsHeading.nextSibling;
+     while (el) {
+       if (el.nodeType === 1 && el.tagName === 'TABLE' && el.classList.contains('toccolours')) {
+         resultsTable = el;
+         break;
+       }
+       el = el.nextSibling;
+     }
+   }
+   if (!resultsTable) {
+     resultsTable = tempDiv.querySelector('table.toccolours');
+   }
+   if (!resultsTable) {
+     document.getElementById('results-table').textContent = 'No results table found for this event.';
+     return;
+   }
+
+   // Clone table
+   const clone = resultsTable.cloneNode(true);
+
+   // Add new first column header (fighters)
+   const thead = clone.querySelector('thead') || clone.createTHead();
+   const headerRow = thead.rows[0];
+   if (headerRow) {
+     const thFighters = document.createElement('th');
+     thFighters.textContent = 'Fighters (A-Z)';
+     thFighters.className = 'fighters-col';
+     headerRow.insertBefore(thFighters, headerRow.firstChild);
+
+     const thMethod = document.createElement('th');
+     thMethod.textContent = '';
+     thMethod.className = 'method-col';
+     headerRow.insertBefore(thMethod, headerRow.children[1]);
+   }
+
+   // Fix all Wikipedia links in the table
+   const allLinks = clone.querySelectorAll('a');
+   allLinks.forEach(link => {
+     const href = link.getAttribute('href');
+     if (href && href.startsWith('/wiki/')) {
+       link.setAttribute('href', `https://en.wikipedia.org${href}`);
+       link.setAttribute('target', '_blank');
+     }
+   });
+
+   // Add fighters and new column to each row
+   const rows = clone.querySelectorAll('tbody tr');
+   rows.forEach((row, rowIndex) => {
+     // Insert Fighters column with links
+     let fightersCell = document.createElement('td');
+     fightersCell.className = 'fighters-col';
+     const cells = row.querySelectorAll('td,th');
+     if (cells.length >= 6) {
+       let fighter1 = cells[1].textContent.trim();
+       let linkElement1 = cells[1].querySelector('a');
+       let fighter2 = cells[3].textContent.trim();
+       let linkElement2 = cells[3].querySelector('a');
+       let fighters = [];
+
+       if (fighter1 && linkElement1) {
+         const fullLink = fixWikipediaLink(linkElement1);
+         fighters.push(`<a href="${fullLink}" target="_blank">${fighter1}</a>`);
+       } else if (fighter1) {
+         fighters.push(fighter1);
+       }
+
+       if (fighter2 && linkElement2) {
+         const fullLink = fixWikipediaLink(linkElement2);
+         fighters.push(`<a href="${fullLink}" target="_blank">${fighter2}</a>`);
+       } else if (fighter2) {
+         fighters.push(fighter2);
+       }
+
+       fightersCell.innerHTML = fighters.sort((a,b) => {
+         const nameA = a.includes('<a') ? a.split('>')[1].split('<')[0] : a;
+         const nameB = b.includes('<a') ? b.split('>')[1].split('<')[0] : b;
+         return nameA.localeCompare(nameB);
+       }).join(', ');
+     }
+     row.insertBefore(fightersCell, row.firstChild);
+
+     // Insert new column with Yes/No if first word of (original) 7th column (now index 4) is Decision
+     let newCell = document.createElement('td');
+     newCell.className = 'method-col';
+     if (rowIndex === 1) {
+       newCell.textContent = 'Went to Decision';
+       newCell.style.fontWeight = 'bold';
+       newCell.style.background = '#ffe';
+       newCell.style.color = '#222';
+     } else if (cells.length > 4) {
+       let methodCell = cells[4];
+       let methodText = methodCell ? methodCell.textContent.trim() : '';
+       let firstWord = methodText.split(/\s+/)[0];
+       newCell.textContent = (firstWord === "Decision") ? "Yes" : "No";
+     } else {
+       newCell.textContent = '';
+     }
+     row.insertBefore(newCell, row.children[1]);
+   });
+
+   // Modify 2nd row: 4th cell "Winner", 6th cell "Loser" (shifted by two new columns)
+   if (rows.length > 1) {
+     const tds = rows[1].querySelectorAll('td,th');
+     if (tds.length > 5) {
+       tds[3].textContent = 'Winner';
+       tds[5].textContent = 'Loser';
+     }
+   }
+
+   // Remove links from the 4th and 6th columns
+   const allRowsLinks = clone.querySelectorAll('tbody tr');
+   allRowsLinks.forEach(row => {
+     const cells = row.querySelectorAll('td, th');
+     if (cells.length > 6) {
+       // 4th column
+       const cell4 = cells[3];
+       if (cell4) {
+         cell4.innerHTML = cell4.textContent; // Removes the link
+       }
+       // 6th column
+       const cell6 = cells[5];
+       if (cell6) {
+         cell6.innerHTML = cell6.textContent; // Removes the link
+       }
+     }
+   });
+
+   // Remove specified columns (5th, 6th, and 10th)
+   const allRowsColumns = clone.querySelectorAll('tbody tr');
+   allRowsColumns.forEach(row => {
+     const cells = row.querySelectorAll('td, th');
+     
+     // Remove 10th column first to avoid index shifting issues
+     if (cells[9]) {
+       cells[9].remove();
+     }
+     // Remove 6th column
+     if (cells[5]) {
+       cells[5].remove();
+     }
+     // Remove 5th column
+     if (cells[4]) {
+       cells[4].remove();
+     }
+   });
+
+   // BLINDING LOGIC
+   // Go through all rows and cells
+   const allRowsB = clone.querySelectorAll('tr');
+   allRowsB.forEach((row, rowIdx) => {
+     // Always keep first two rows visible
+     if (rowIdx < 2) return;
+     const cells = row.querySelectorAll('td,th');
+     cells.forEach((cell, colIdx) => {
+       // Only keep first and third columns visible (0-based)
+       if (colIdx === 0 || colIdx === 2) return;
+       // Blind this cell
+       cell.classList.add('blinded');
+     });
+   });
+
+   // Create button row - FIXED VERSION
+   const tbody = clone.querySelector('tbody');
+   const buttonRow = document.createElement('tr');
+   buttonRow.className = 'button-row';
+   
+   // Hard-coded approach for column labels
+   const columnLabels = [];
+   
+   // Get column labels from header row
+   if (clone.rows.length > 1) {
+     const headerCells = clone.rows[1].cells;
+     for (let i = 0; i < headerCells.length; i++) {
+       columnLabels[i] = headerCells[i].textContent.trim();
+     }
+   }
+   
+   // Create cells for the button row based on the number of columns in data rows
+   if (clone.rows.length > 2) {
+     const firstDataRow = clone.rows[2];
+     const columnCount = firstDataRow.cells.length;
+     
+     for (let i = 0; i < columnCount; i++) {
+       const buttonCell = document.createElement('td');
+       
+       // Only add reveal buttons for columns that should be blinded (not first and third)
+       if (i !== 0 && i !== 2) {
+         const button = document.createElement('button');
+         button.className = 'unblind-btn';
+         button.setAttribute('data-column', i);
+         
+         // Use column label if available, otherwise use generic name
+         const columnName = columnLabels[i] || `Column ${i+1}`;
+         button.textContent = `Reveal All`;
+         
+         buttonCell.appendChild(button);
+       }
+       
+       buttonRow.appendChild(buttonCell);
+     }
+     
+     // Insert button row after the header rows
+     tbody.insertBefore(buttonRow, clone.rows[2]);
+   }
+
+   // Add click event to reveal blinded cells
+   clone.addEventListener('click', function(e) {
+     // Individual cell reveal
+     if (e.target.classList.contains('blinded')) {
+       e.target.classList.add('revealed');
+     }
+     
+     // Column reveal button
+     if (e.target.classList.contains('unblind-btn')) {
+       const columnIndex = parseInt(e.target.getAttribute('data-column'));
+       const allRows = clone.querySelectorAll('tr');
+       
+       // Start from row index 3 (after headers and button row)
+       for (let i = 3; i < allRows.length; i++) {
+         if (allRows[i].cells[columnIndex] && 
+             allRows[i].cells[columnIndex].classList.contains('blinded')) {
+           allRows[i].cells[columnIndex].classList.add('revealed');
+         }
+       }
+     }
+   });
+
+   document.getElementById('results-table').innerHTML = '';
+   document.getElementById('results-table').appendChild(clone);
+
+   if (data.parse.title) {
+     document.querySelector('h1').textContent = `SpoilerGuard MMA Event: ${data.parse.title}`;
+   }
+ } catch (e) {
+   document.getElementById('results-table').textContent = 'Error loading or parsing event data.';
+   console.error(e);
+ }
+})();
+</script>
+</body>
+</html>
