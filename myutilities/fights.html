@@ -2,9 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>UFC Event Fights</title>
+    <title>SpoilerGuard MMA Event</title>
     <style>
         body { font-family: Arial, sans-serif; }
+        .icon-header {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .icon-header img {
+            height: 60px;
+            width: auto;
+            display: block;
+        }
         table { border-collapse: collapse; margin: 20px 0; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 6px 10px; }
         th { background: #eee; }
@@ -15,22 +26,55 @@
             font-weight: bold;
             cursor: default;
         }
+
+
+        /* --- CURSOR FIX --- */
+        td, th, td a, th a {
+            cursor: default !important;
+        }
         .blinded, .blinded * {
             background: #000 !important;
             color: #000 !important;
             text-shadow: none !important;
-            border-color: #000 !important;
+            border: 2px solid #444 !important;
+            border-radius: 4px;
+            cursor: pointer !important;
+            padding: 4px 8px !important;
+            margin: 2px !important;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .blinded::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #888;
+            font-size: 1.1em;
+            pointer-events: none;
+            opacity: 0.7;
         }
         .blinded.revealed, .blinded.revealed * {
             color: inherit !important;
             background: inherit !important;
             text-shadow: inherit !important;
             border-color: inherit !important;
+            padding: inherit !important;
+            margin: inherit !important;
+            cursor: default !important;
+            transition: none !important;
+        }
+        .blinded.revealed::after {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Fights for Event</h1>
+    <div class="icon-header">
+        <img src="sgicon.png" alt="SpoilerGuard Icon" />
+    </div>
+    <h1>SpoilerGuard MMA Event</h1>
     <p id="reveal-instruction" style="font-style: italic; color: #555; margin-top: -10px;">Click on blinded items to reveal.</p>
     <div id="results-table">Loading fights...</div>
 <script>
@@ -43,12 +87,21 @@
     }
     const pageName = eventPath.replace('/wiki/', '');
     const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageName)}&format=json&origin=*`;
+    
+    // Helper function to fix Wikipedia links
+    function fixWikipediaLink(linkElement) {
+        if (!linkElement) return null;
+        const href = linkElement.getAttribute('href');
+        return href.startsWith('/wiki/') ? `https://en.wikipedia.org${href}` : href;
+    }
+    
     try {
         const response = await fetch(url);
         const data = await response.json();
         const html = data.parse.text['*'];
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
+
 
         // Find the Results heading
         let resultsTable = null;
@@ -78,8 +131,10 @@
             return;
         }
 
+
         // Clone table
         const clone = resultsTable.cloneNode(true);
+
 
         // Add new first column header (fighters)
         const thead = clone.querySelector('thead') || clone.createTHead();
@@ -90,33 +145,68 @@
             thFighters.className = 'fighters-col';
             headerRow.insertBefore(thFighters, headerRow.firstChild);
 
+
             const thMethod = document.createElement('th');
             thMethod.textContent = '';
+            thMethod.className = 'method-col';
             headerRow.insertBefore(thMethod, headerRow.children[1]);
         }
+
+
+        // Fix all Wikipedia links in the table
+        const allLinks = clone.querySelectorAll('a');
+        allLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('/wiki/')) {
+                link.setAttribute('href', `https://en.wikipedia.org${href}`);
+                link.setAttribute('target', '_blank');
+            }
+        });
+
 
         // Add fighters and new column to each row
         const rows = clone.querySelectorAll('tbody tr');
         rows.forEach((row, rowIndex) => {
-            // Insert Fighters column
+            // Insert Fighters column with links
             let fightersCell = document.createElement('td');
             fightersCell.className = 'fighters-col';
             const cells = row.querySelectorAll('td,th');
-            if (cells.length >= 4) {
+            if (cells.length >= 6) {
                 let fighter1 = cells[1].textContent.trim();
+                let linkElement1 = cells[1].querySelector('a');
                 let fighter2 = cells[3].textContent.trim();
-                if (fighter1.toLowerCase() === "def.") fighter1 = "";
-                if (fighter2.toLowerCase() === "def.") fighter2 = "";
-                let fighters = "";
-                if (fighter1 && fighter2) {
-                    fighters = [fighter1, fighter2].sort((a,b) => a.localeCompare(b)).join(', ');
+                let linkElement2 = cells[3].querySelector('a');
+                let fighters = [];
+
+
+                if (fighter1 && linkElement1) {
+                    const fullLink = fixWikipediaLink(linkElement1);
+                    fighters.push(`<a href="${fullLink}" target="_blank">${fighter1}</a>`);
+                } else if (fighter1) {
+                    fighters.push(fighter1);
                 }
-                fightersCell.textContent = fighters;
+
+
+                if (fighter2 && linkElement2) {
+                    const fullLink = fixWikipediaLink(linkElement2);
+                    fighters.push(`<a href="${fullLink}" target="_blank">${fighter2}</a>`);
+                } else if (fighter2) {
+                    fighters.push(fighter2);
+                }
+
+
+                fightersCell.innerHTML = fighters.sort((a,b) => {
+                    const nameA = a.includes('<a') ? a.split('>')[1].split('<')[0] : a;
+                    const nameB = b.includes('<a') ? b.split('>')[1].split('<')[0] : b;
+                    return nameA.localeCompare(nameB);
+                }).join(', ');
             }
             row.insertBefore(fightersCell, row.firstChild);
 
+
             // Insert new column with Yes/No if first word of (original) 7th column (now index 4) is Decision
             let newCell = document.createElement('td');
+            newCell.className = 'method-col';
             if (rowIndex === 1) {
                 newCell.textContent = 'Decision';
                 newCell.style.fontWeight = 'bold';
@@ -133,6 +223,7 @@
             row.insertBefore(newCell, row.children[1]);
         });
 
+
         // Modify 2nd row: 4th cell "Winner", 6th cell "Loser" (shifted by two new columns)
         if (rows.length > 1) {
             const tds = rows[1].querySelectorAll('td,th');
@@ -142,10 +233,30 @@
             }
         }
 
+
+        // Remove links from the 4th and 6th columns
+        const allRows = clone.querySelectorAll('tbody tr');
+           allRows.forEach(row => {
+               const cells = row.querySelectorAll('td, th');
+               if (cells.length > 6) {
+                   // 4th column
+                   const cell4 = cells[3];
+                   if (cell4) {
+                       cell4.innerHTML = cell4.textContent; // Removes the link
+                   }
+                   // 6th column
+                   const cell6 = cells[5];
+                   if (cell6) {
+                       cell6.innerHTML = cell6.textContent; // Removes the link
+                   }
+               }
+           });
+
+
         // BLINDING LOGIC
         // Go through all rows and cells
-        const allRows = clone.querySelectorAll('tr');
-        allRows.forEach((row, rowIdx) => {
+        const allRowsB = clone.querySelectorAll('tr');
+        allRowsB.forEach((row, rowIdx) => {
             // Always keep first two rows visible
             if (rowIdx < 2) return;
             const cells = row.querySelectorAll('td,th');
@@ -157,6 +268,7 @@
             });
         });
 
+
         // Add click event to reveal blinded cells
         clone.addEventListener('click', function(e) {
             if (e.target.classList.contains('blinded')) {
@@ -164,11 +276,13 @@
             }
         });
 
+
         document.getElementById('results-table').innerHTML = '';
         document.getElementById('results-table').appendChild(clone);
 
+
         if (data.parse.title) {
-            document.querySelector('h1').textContent = `Fights for ${data.parse.title}`;
+            document.querySelector('h1').textContent = `SpoilerGuard MMA Event: ${data.parse.title}`;
         }
     } catch (e) {
         document.getElementById('results-table').textContent = 'Error loading or parsing event data.';

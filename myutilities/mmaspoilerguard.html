@@ -2,9 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>UFC Past Events Scraper</title>
+    <title>MMA Spoiler Guard</title>
+    <!-- Home screen icons for iOS and Android -->
+    <link rel="apple-touch-icon" href="sgicon.png" sizes="180x180">
+    <link rel="icon" type="image/png" href="sgicon.png" sizes="192x192">
     <style>
         body { font-family: Arial, sans-serif; }
+        .icon-container {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        .icon-container img {
+            width: 72px;
+            height: 72px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 22px;
+        }
         table { border-collapse: collapse; margin: 20px 0; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 6px 10px; }
         th { background: #eee; }
@@ -13,7 +35,13 @@
     </style>
 </head>
 <body>
-    <h1>UFC Past Events </h1>
+    <div class="icon-container">
+        <img src="sgicon.png" alt="Spoiler Guard Icon">
+    </div>
+    <h1>MMA Spoiler Guard</h1>
+    <div class="subtitle">
+        Click on an event below to learn about it without spoilers
+    </div>
     <table id="ufc-events">
         <thead>
             <tr>
