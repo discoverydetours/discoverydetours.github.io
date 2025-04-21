@@ -467,26 +467,13 @@
             document.getElementById('results-table').textContent = 'Error loading or parsing event data.';
             console.error(e);
         }
-   // Counter API implementation
-    fetch('https://api.countapi.xyz/hit/spoilerguard-mma/visits')
-  .then(response => response.json())
-  .then(data => {
-    document.getElementById('count').textContent = data.value.toLocaleString();
-  })
-  .catch(error => {
-    document.getElementById('count').textContent = 'Counter unavailable';
-    console.error('Counter error:', error);
-  });
-   
+ 
    
    })();
 </script>
 
-<!-- Add this HTML just before the closing </body> tag -->
-<div id="visitor-counter" style="margin-top: 30px; margin-bottom: 20px; text-align: center; font-size: 14px; color: #555;">
-    <span>Visitor count: </span>
-    <span id="count" style="font-weight: bold;">Loading...</span>
-  </div>
+<a href='http://www.freevisitorcounters.com'>free counters</a> <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=69f7de04ad7cb5e705d59f663e0e489a840cb3e5'></script>
+<script type="text/javascript" src="https://freevisitorcounters.com/en/home/counter/1330200/t/0"></script>
   
 </body>
 </html>
