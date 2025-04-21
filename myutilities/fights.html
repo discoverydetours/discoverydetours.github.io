@@ -18,7 +18,7 @@
  }
  table { border-collapse: collapse; margin: 20px 0; width: 100%; }
  th, td { border: 1px solid #ccc; padding: 6px 10px; }
- th { background: #eee; }
+ th { background: #eee; position: relative; }
  tr:nth-child(even) { background: #f9f9f9; }
  .fighters-col {
  background: #ffe;
@@ -26,7 +26,29 @@
  font-weight: bold;
  cursor: default;
  }
-
+ 
+ /* Column unblind buttons */
+ .unblind-btn {
+   background: #555;
+   color: white;
+   border: none;
+   border-radius: 4px;
+   padding: 4px 8px;
+   cursor: pointer;
+   font-size: 11px;
+   width: 80%;
+   margin: 0 auto;
+   display: block;
+ }
+ 
+ .unblind-btn:hover {
+   background: #777;
+ }
+ 
+ .button-row td {
+   text-align: center;
+   background: #f0f0f0;
+ }
 
  /* --- CURSOR FIX --- */
  td, th, td a, th a {
@@ -75,7 +97,7 @@
  <img src="sgicon.png" alt="SpoilerGuard Icon" />
  </div>
  <h1>SpoilerGuard MMA Event</h1>
- <p id="reveal-instruction" style="font-style: italic; color: #555; margin-top: -10px;">Click on blinded items to reveal.</p>
+ <p id="reveal-instruction" style="font-style: italic; color: #555; margin-top: -10px;">Click on blinded items to reveal individually, or use the "Reveal All" buttons to reveal entire columns at once.</p>
  <div id="results-table">Loading fights...</div>
 <script>
 (async function() {
@@ -288,24 +310,81 @@
  });
  });
 
+ // Create button row - FIXED VERSION
+ const tbody = clone.querySelector('tbody');
+ const buttonRow = document.createElement('tr');
+ buttonRow.className = 'button-row';
+ 
+ // Hard-coded approach for column labels
+ const columnLabels = [];
+ 
+ // Get column labels from header row
+ if (clone.rows.length > 1) {
+   const headerCells = clone.rows[1].cells;
+   for (let i = 0; i < headerCells.length; i++) {
+     columnLabels[i] = headerCells[i].textContent.trim();
+   }
+ }
+ 
+ // Create cells for the button row based on the number of columns in data rows
+ if (clone.rows.length > 2) {
+   const firstDataRow = clone.rows[2];
+   const columnCount = firstDataRow.cells.length;
+   
+   for (let i = 0; i < columnCount; i++) {
+     const buttonCell = document.createElement('td');
+     
+     // Only add reveal buttons for columns that should be blinded (not first and third)
+     if (i !== 0 && i !== 2) {
+       const button = document.createElement('button');
+       button.className = 'unblind-btn';
+       button.setAttribute('data-column', i);
+       
+       // Use column label if available, otherwise use generic name
+       const columnName = columnLabels[i] || `Column ${i+1}`;
+       button.textContent = `Reveal All`;
+       
+       buttonCell.appendChild(button);
+     }
+     
+     buttonRow.appendChild(buttonCell);
+   }
+   
+   // Insert button row after the header rows
+   tbody.insertBefore(buttonRow, clone.rows[2]);
+ }
 
  // Add click event to reveal blinded cells
  clone.addEventListener('click', function(e) {
- if (e.target.classList.contains('blinded')) {
- e.target.classList.add('revealed');
- }
+   // Individual cell reveal
+   if (e.target.classList.contains('blinded')) {
+     e.target.classList.add('revealed');
+   }
+   
+   // Column reveal button
+   if (e.target.classList.contains('unblind-btn')) {
+     const columnIndex = parseInt(e.target.getAttribute('data-column'));
+     const allRows = clone.querySelectorAll('tr');
+     
+     // Start from row index 3 (after headers and button row)
+     for (let i = 3; i < allRows.length; i++) {
+       if (allRows[i].cells[columnIndex] && 
+           allRows[i].cells[columnIndex].classList.contains('blinded')) {
+         allRows[i].cells[columnIndex].classList.add('revealed');
+       }
+     }
+   }
  });
-
 
  document.getElementById('results-table').innerHTML = '';
  document.getElementById('results-table').appendChild(clone);
-
 
  if (data.parse.title) {
  document.querySelector('h1').textContent = `SpoilerGuard MMA Event: ${data.parse.title}`;
  }
  } catch (e) {
  document.getElementById('results-table').textContent = 'Error loading or parsing event data.';
+ console.error(e);
  }
 })();
 </script>
