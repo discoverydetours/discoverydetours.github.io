@@ -156,7 +156,7 @@
                 forecastData.forEach((data, index) => {
                     const tempClass = getTemperatureClass(data.highTemp);
                     const isDillonOrCrissy = (locationName === 'Dillon' || locationName === 'Crissy');
-                    const windClass = data.windSpeed > 15 ? 'wind-highlight' : '';
+                    const windClass = data.windSpeed > 12 ? 'wind-highlight' : '';
                     const windHTML = isDillonOrCrissy ? `<div class="wind ${windClass}">Wind: ${data.windSpeed} mph</div>` : '';
                     row.insertCell(index + 1).innerHTML = `
                         <div class="temperature ${tempClass}">${data.highTemp}°F</div>
