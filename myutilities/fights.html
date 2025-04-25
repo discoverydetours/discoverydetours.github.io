@@ -348,9 +348,9 @@
 
             // Insert Reddit column
             let redditCell = document.createElement('td');
-            if (rowIndex < 2) {
+            if (rowIndex === 1) { // Only add the header text in the second row
                 redditCell.textContent = 'Reddit Discussion';
-            } else {
+            } else if (rowIndex > 1) { // For all other rows (not the first row)
                 let fighterNames = fightersCell.textContent.split(',').map(n => n.trim());
                 if (fighterNames.length === 2) {
                     let lastName1 = fighterNames[0].split(' ').pop();
@@ -360,6 +360,8 @@
                 } else {
                     redditCell.textContent = '';
                 }
+            } else {
+                redditCell.textContent = ''; // First row gets empty cell
             }
             row.appendChild(redditCell);
         });
@@ -389,7 +391,7 @@
         const allRowsColumns = clone.querySelectorAll('tbody tr');
         allRowsColumns.forEach(row => {
             const cells = row.querySelectorAll('td, th');
-            if (cells[9]) cells[9].remove(); // Remove the redundant Reddit column
+            if (cells[9]) cells[9].remove();
             if (cells[5]) cells[5].remove();
             if (cells[4]) cells[4].remove();
         });
@@ -400,14 +402,12 @@
             if (rowIdx < 2) return;
             const cells = row.querySelectorAll('td,th');
             cells.forEach((cell, colIdx) => {
-                // Only blind columns that aren't the fighters or method columns (index 0 and 1)
-                if (colIdx !== 0 && colIdx !== 1) {
-                    cell.classList.add('blinded');
-                    // Add click to toggle reveal individually
-                    cell.addEventListener('click', () => {
-                        cell.classList.toggle('revealed');
-                    });
-                }
+                if (colIdx === 0 || colIdx === 2) return;
+                cell.classList.add('blinded');
+                // Add click to toggle reveal individually
+                cell.addEventListener('click', () => {
+                    cell.classList.toggle('revealed');
+                });
             });
         });
 
@@ -424,20 +424,13 @@
             const colCount = clone.querySelectorAll('thead tr th').length;
             for (let colIndex = 0; colIndex < colCount; colIndex++) {
                 const td = document.createElement('td');
-                
-                // Add buttons for all columns
-                const btn = document.createElement('button');
-                btn.textContent = 'Reveal All';
-                btn.className = 'unblind-btn';
-                btn.style.width = '90%';
-                
-                // For non-blinded columns (fighters and method), disable the buttons
-                if (colIndex === 0 || colIndex === 1) {
-                    btn.disabled = true;
-                    btn.style.opacity = '0.5';
-                    btn.style.cursor = 'not-allowed';
-                    btn.title = 'Column already visible';
+                if (colIndex === 0) {
+                    td.textContent = '';
                 } else {
+                    const btn = document.createElement('button');
+                    btn.textContent = 'Reveal All';
+                    btn.className = 'unblind-btn';
+                    btn.style.width = '90%';
                     btn.addEventListener('click', () => {
                         tbody.querySelectorAll('tr').forEach((row, rIdx) => {
                             if (rIdx < 2) return; // skip header and buttons row
@@ -447,11 +440,10 @@
                             }
                         });
                     });
+                    td.appendChild(btn);
                 }
-                td.appendChild(btn);
                 btnRow.appendChild(td);
             }
-            
             if (tbody.rows.length > 1) {
                 tbody.insertBefore(btnRow, tbody.rows[1]);
             } else {

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reddit Search by Date and Keywords</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    label { display: block; margin-top: 1em; }
+    #result { margin-top: 2em; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h2>Reddit Search</h2>
+  <form id="reddit-search-form">
+    <label>
+      Date (YYYY-MM-DD):
+      <input type="date" id="date-input" required>
+    </label>
+    <label>
+      Keywords:
+      <input type="text" id="keywords-input" placeholder="Enter keywords" required>
+    </label>
+    <button type="submit">Search</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('reddit-search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const date = document.getElementById('date-input').value;
+      const keywords = document.getElementById('keywords-input').value.trim();
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+
+      if (!date || !keywords) {
+        resultDiv.innerHTML = '<div class="error">Please enter both date and keywords.</div>';
+        return;
+      }
+
+      // Convert date to Unix timestamp for Reddit's 'timestamp' search
+      const after = Math.floor(new Date(date).getTime() / 1000);
+      const before = after + 86400; // One day after
+
+      // Construct search query: keywords + date filter
+      const query = encodeURIComponent(keywords);
+      const url = `https://www.reddit.com/search.json?q=${query}&restrict_sr=off&sort=relevance&limit=1&after=${after}&before=${before}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const posts = data.data.children;
+          if (posts.length === 0) {
+            resultDiv.innerHTML = '<div>No results found.</div>';
+            return;
+          }
+          const post = posts[0].data;
+          resultDiv.innerHTML = `
+            <h3><a href="https://reddit.com${post.permalink}" target="_blank">${post.title}</a></h3>
+            <p>Subreddit: ${post.subreddit}</p>
+            <p>Author: ${post.author}</p>
+            <p>Score: ${post.score}</p>
+            <p><a href="https://reddit.com${post.permalink}" target="_blank">View on Reddit</a></p>
+          `;
+        })
+        .catch(err => {
+          resultDiv.innerHTML = '<div class="error">Error fetching results.</div>';
+        });
+    });
+  </script>
+</body>
+</html>
