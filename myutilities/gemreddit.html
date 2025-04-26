@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Query</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea, input[type="url"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        #generalInstructions, #specificInstructions {
+            height: 60px;
+        }
+        .button-group {
+            margin-bottom: 10px;
+        }
+        .button-group button {
+            margin-right: 5px;
+        }
+        .input-option {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gemini API Query Interface</h1>
+    
+    <div class="button-group">
+        <button id="blankBtn">Blank</button>
+        <button id="calendarBtn">Calendar</button>
+        <button id="summaryBtn">Summary</button>
+        <button id="searchBtn">Search</button>
+        <button id="rateFightBtn">Rate Fight</button>
+    </div>
+
+    <label for="generalInstructions">General Instructions (Try not to change!):</label>
+    <textarea id="generalInstructions" placeholder="Select a button above to populate general instructions..."></textarea>
+
+    <label for="specificInstructions">Specific Instructions (Use this for fine tuning):</label>
+    <textarea id="specificInstructions" placeholder="Enter any specific instructions here..."></textarea>
+
+    <div class="input-option">
+        <label>
+            <input type="radio" name="inputType" value="text" checked>
+            Paste Text
+        </label>
+        <label>
+            <input type="radio" name="inputType" value="url">
+            Reddit URL
+        </label>
+    </div>
+
+    <div id="textInputDiv">
+        <label for="data">Paste your data:</label>
+        <textarea id="data" placeholder="Paste large amount of text here..."></textarea>
+    </div>
+    <div id="urlInputDiv" style="display:none;">
+        <label for="redditUrl">Reddit URL:</label>
+        <input type="url" id="redditUrl" placeholder="Enter a Reddit post or comment URL..." />
+    </div>
+
+    <button id="goButton">Go</button>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+            }
+        }
+    </script>
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        const API_KEY = "AIzaSyBO_uAEMMu5nDfC1tfx4u8nDs5MJJRWTEQ";
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const generalInstructionsField = document.getElementById('generalInstructions');
+        const specificInstructionsField = document.getElementById('specificInstructions');
+        const dataField = document.getElementById('data');
+        const redditUrlField = document.getElementById('redditUrl');
+        const textInputDiv = document.getElementById('textInputDiv');
+        const urlInputDiv = document.getElementById('urlInputDiv');
+
+        // Toggle input fields based on radio selection
+        document.querySelectorAll('input[name="inputType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'text') {
+                    textInputDiv.style.display = '';
+                    urlInputDiv.style.display = 'none';
+                } else {
+                    textInputDiv.style.display = 'none';
+                    urlInputDiv.style.display = '';
+                }
+            });
+        });
+
+        document.getElementById('blankBtn').onclick = () => {
+            generalInstructionsField.value = '';
+            specificInstructionsField.value = '';
+        };
+
+        document.getElementById('calendarBtn').onclick = () => {
+            generalInstructionsField.value = 'Make a table with data time name and a link to create a google calendar entry which the user must ok to create the event. The event should show both the general series that it is part of (if there is one) and the specific name of the event.';
+            specificInstructionsField.value = '';
+        };
+
+        document.getElementById('summaryBtn').onclick = () => {
+            generalInstructionsField.value = 'Briefly summarize the following data';
+            specificInstructionsField.value = '';
+        };
+
+        document.getElementById('searchBtn').onclick = () => {
+            generalInstructionsField.value = 'Answer to the following query and then say "Evidence is:" and copy the text from the input data that supports your response.';
+            specificInstructionsField.value = '';
+        };
+
+        document.getElementById('rateFightBtn').onclick = () => {
+            generalInstructionsField.value = 'Discuss how exciting the fight was and then rate it 1-10 in the format rating=x.';
+            specificInstructionsField.value = '';
+        };
+
+        document.getElementById('goButton').onclick = async function() {
+            const generalInstructions = generalInstructionsField.value;
+            const specificInstructions = specificInstructionsField.value;
+            const inputType = document.querySelector('input[name="inputType"]:checked').value;
+
+            let prompt;
+            if (inputType === 'text') {
+                const data = dataField.value.trim();
+                if (!data) {
+                    alert("Please paste your data.");
+                    return;
+                }
+                prompt = `Here are the general instructions: ${generalInstructions}\nHere are the specific instructions: ${specificInstructions}\nHere is the data: ${data}\nGenerate an html file with your result and nothing else`;
+            } else {
+                const redditUrl = redditUrlField.value.trim();
+                if (!redditUrl) {
+                    alert("Please enter a Reddit URL.");
+                    return;
+                }
+                prompt = `Here are the general instructions: ${generalInstructions}\nHere are the specific instructions: ${specificInstructions}\nHere is the Reddit URL: ${redditUrl}\nGenerate an html file with your result and nothing else`;
+            }
+
+            try {
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                let text = await response.text();
+
+                // Clean up the leading ``````
+                text = text.replace(/^\s*``````$/i, '').trim();
+
+                const renderPopup = window.open("", "Rendered HTML", "width=600,height=400");
+                if (renderPopup) {
+                    renderPopup.document.open();
+                    renderPopup.document.write(text);
+                    renderPopup.document.close();
+                } else {
+                    alert("Popup blocked! Please allow popups for this website.");
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+    </script>
+</body>
+</html>
