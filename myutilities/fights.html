@@ -356,8 +356,7 @@
                     let lastName1 = fighterNames[0].split(' ').pop();
                     let lastName2 = fighterNames[1].split(' ').pop();
                     let searchQuery = encodeURIComponent(`spoiler ${lastName1} ${lastName2} ${eventDate}`);
-                    redditCell.innerHTML = `<a href="https://www.reddit.com/search/?q=${searchQuery}" target="_blank">View Discussion</a>`;
-                } else {
+                    redditCell.innerHTML = `<a href="https://www.reddit.com/r/MMA/search/?q=${searchQuery}&restrict_sr=1" target="_blank">View Discussion</a>`;                } else {
                     redditCell.textContent = '';
                 }
             } else {
