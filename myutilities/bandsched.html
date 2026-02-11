@@ -6,89 +6,104 @@
 <style>
 body { font-family: Arial, sans-serif; margin: 40px; }
 h1 { margin-bottom: 10px; }
-input { padding: 8px; width: 300px; margin-bottom: 20px; }
-
-table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-th { background-color: #f2f2f2; }
-
-tr.event:hover { background-color: #f9f9f9; }
+.colab-link { 
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    background-color: #f9ab00;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.colab-link:hover { background-color: #e69500; }
+input { padding: 8px; width: 300px; margin-bottom: 20px; display: block; }
+.event { 
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+.event:hover { background-color: #f9f9f9; }
+.event-date { 
+    display: inline-block;
+    width: 120px;
+    font-weight: bold;
+}
+.event-venue { 
+    display: inline-block;
+    width: 200px;
+}
+.event-band { 
+    display: inline-block;
+}
 </style>
 </head>
 <body>
-
 <h1>Events This Week</h1>
+<a href="https://colab.research.google.com/drive/1CWl1vgV5oN6RkL2Z0wyHX0Sx_Gu4f6FA?usp=sharing" class="colab-link" target="_blank">Open in Google Colab</a>
 <input type="text" id="search" placeholder="Search by date, venue, or band...">
-
-<table>
-<thead>
-<tr>
-    <th>Date</th>
-    <th>Venue</th>
-    <th>Band</th>
-</tr>
-</thead>
-<tbody id="events"></tbody>
-</table>
-
+<div id="events"></div>
 <script>
 async function loadEvents() {
     const response = await fetch('events.json');
     const data = await response.json();
-
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const nextWeek = new Date();
     nextWeek.setDate(today.getDate() + 7);
-
+    nextWeek.setHours(23, 59, 59, 999);
     const filtered = data
         .filter(e => {
             const eventDate = new Date(e.date);
             return eventDate >= today && eventDate <= nextWeek;
         })
         .sort((a, b) => new Date(a.date) - new Date(b.date));
-
     return filtered;
 }
 
-function render(events) {
-    const tbody = document.getElementById('events');
-    tbody.innerHTML = '';
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
 
+function render(events) {
+    const container = document.getElementById('events');
+    container.innerHTML = '';
     events.forEach(e => {
-        const tr = document.createElement('tr');
-        tr.className = 'event';
-        tr.innerHTML = `
-            <td>${new Date(e.date).toLocaleDateString()}</td>
-            <td>${e.venue}</td>
-            <td>${e.band_name}</td>
+        const div = document.createElement('div');
+        div.className = 'event';
+        div.innerHTML = `
+            <span class="event-date">${formatDate(e.date)}</span>
+            <span class="event-venue">${e.venue}</span>
+            <span class="event-band">${e.band_name}</span>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(div);
     });
 }
 
 function applySearch(events) {
     const query = document.getElementById('search').value.toLowerCase();
-
     const filtered = events.filter(e => {
-        const dateStr = new Date(e.date).toLocaleDateString();
+        const formattedDate = formatDate(e.date).toLowerCase();
+        const rawDate = e.date.toLowerCase();
         return e.venue.toLowerCase().includes(query) ||
                e.band_name.toLowerCase().includes(query) ||
-               dateStr.includes(query);
+               formattedDate.includes(query) ||
+               rawDate.includes(query);
     });
-
     render(filtered);
 }
 
 let allEvents = [];
-
 loadEvents().then(events => {
     allEvents = events;
     render(allEvents);
-
     document.getElementById('search')
         .addEventListener('input', () => applySearch(allEvents));
 });
 </script>
-
 </body>
 </html>
