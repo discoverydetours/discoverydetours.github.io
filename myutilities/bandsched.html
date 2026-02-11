@@ -7,10 +7,12 @@
 body { font-family: Arial, sans-serif; margin: 40px; }
 h1 { margin-bottom: 10px; }
 input { padding: 8px; width: 300px; margin-bottom: 20px; }
-.event { padding: 10px 0; border-bottom: 1px solid #ddd; }
-.date { font-weight: bold; }
-.venue { color: #555; }
-.band { color: #000; }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }
+
+tr.event:hover { background-color: #f9f9f9; }
 </style>
 </head>
 <body>
@@ -18,7 +20,16 @@ input { padding: 8px; width: 300px; margin-bottom: 20px; }
 <h1>Events This Week</h1>
 <input type="text" id="search" placeholder="Search by date, venue, or band...">
 
-<div id="events"></div>
+<table>
+<thead>
+<tr>
+    <th>Date</th>
+    <th>Venue</th>
+    <th>Band</th>
+</tr>
+</thead>
+<tbody id="events"></tbody>
+</table>
 
 <script>
 async function loadEvents() {
@@ -40,28 +51,31 @@ async function loadEvents() {
 }
 
 function render(events) {
-    const container = document.getElementById('events');
-    container.innerHTML = '';
+    const tbody = document.getElementById('events');
+    tbody.innerHTML = '';
 
     events.forEach(e => {
-        const div = document.createElement('div');
-        div.className = 'event';
-        div.innerHTML = `
-            <div class="date">${new Date(e.date).toDateString()}</div>
-            <div class="venue">${e.venue}</div>
-            <div class="band">${e.band_name}</div>
+        const tr = document.createElement('tr');
+        tr.className = 'event';
+        tr.innerHTML = `
+            <td>${new Date(e.date).toLocaleDateString()}</td>
+            <td>${e.venue}</td>
+            <td>${e.band_name}</td>
         `;
-        container.appendChild(div);
+        tbody.appendChild(tr);
     });
 }
 
 function applySearch(events) {
     const query = document.getElementById('search').value.toLowerCase();
-    const filtered = events.filter(e =>
-        e.venue.toLowerCase().includes(query) ||
-        e.band_name.toLowerCase().includes(query) ||
-        e.date.includes(query)
-    );
+
+    const filtered = events.filter(e => {
+        const dateStr = new Date(e.date).toLocaleDateString();
+        return e.venue.toLowerCase().includes(query) ||
+               e.band_name.toLowerCase().includes(query) ||
+               dateStr.includes(query);
+    });
+
     render(filtered);
 }
 
