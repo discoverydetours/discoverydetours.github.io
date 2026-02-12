@@ -25,12 +25,22 @@ input { padding: 8px; width: 300px; margin-bottom: 20px; display: block; }
 .event:hover { background-color: #f9f9f9; }
 .event-date { 
     display: inline-block;
-    width: 150px;
+    width: 200px;
     font-weight: bold;
+}
+.event-time {
+    display: inline-block;
+    width: 80px;
+    color: #555;
 }
 .event-venue { 
     display: inline-block;
     width: 200px;
+}
+.event-city {
+    display: inline-block;
+    width: 150px;
+    color: #555;
 }
 .event-band { 
     display: inline-block;
@@ -86,6 +96,15 @@ function formatDate(dateStr) {
         day: 'numeric' 
     });
 }
+function formatTime(timeStr) {
+    if (!timeStr) return '';
+    // Handle time in HH:MM format
+    const [hours, minutes] = timeStr.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+}
 function render(events) {
     const container = document.getElementById('events');
     container.innerHTML = '';
@@ -93,6 +112,8 @@ function render(events) {
         const div = document.createElement('div');
         div.className = 'event';
         const otherInfo = e.other_info ? `<span class="event-info">${e.other_info}</span>` : '';
+        const time = e.time ? `<span class="event-time">${formatTime(e.time)}</span>` : '';
+        const city = e.location ? `<span class="event-city">${e.location}</span>` : '';
         let sourceUrl = '';
         if (e.source_url) {
             try {
@@ -105,7 +126,9 @@ function render(events) {
         }
         div.innerHTML = `
             <span class="event-date">${formatDate(e.date)}</span>
+            ${time}
             <span class="event-venue">${e.venue}</span>
+            ${city}
             <span class="event-band">${e.band_name}</span>
             ${otherInfo}
             ${sourceUrl}
@@ -119,11 +142,13 @@ function applySearch(events) {
         const formattedDate = formatDate(e.date).toLowerCase();
         const rawDate = e.date.toLowerCase();
         const otherInfo = e.other_info ? e.other_info.toLowerCase() : '';
+        const location = e.location ? e.location.toLowerCase() : '';
         return e.venue.toLowerCase().includes(query) ||
                e.band_name.toLowerCase().includes(query) ||
                formattedDate.includes(query) ||
                rawDate.includes(query) ||
-               otherInfo.includes(query);
+               otherInfo.includes(query) ||
+               location.includes(query);
     });
     render(filtered);
 }
