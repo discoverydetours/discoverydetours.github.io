@@ -41,6 +41,19 @@ input { padding: 8px; width: 300px; margin-bottom: 20px; display: block; }
     color: #666;
     font-style: italic;
 }
+.event-source {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 4px 8px;
+    background-color: #4285f4;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 12px;
+}
+.event-source:hover {
+    background-color: #3367d6;
+}
 </style>
 </head>
 <body>
@@ -65,7 +78,6 @@ async function loadEvents() {
         .sort((a, b) => new Date(a.date) - new Date(b.date));
     return filtered;
 }
-
 function formatDate(dateStr) {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { 
@@ -74,7 +86,6 @@ function formatDate(dateStr) {
         day: 'numeric' 
     });
 }
-
 function render(events) {
     const container = document.getElementById('events');
     container.innerHTML = '';
@@ -82,16 +93,17 @@ function render(events) {
         const div = document.createElement('div');
         div.className = 'event';
         const otherInfo = e.other_info ? `<span class="event-info">${e.other_info}</span>` : '';
+        const sourceUrl = e.source_url ? `<a href="${e.source_url}" target="_blank" class="event-source">Link</a>` : '';
         div.innerHTML = `
             <span class="event-date">${formatDate(e.date)}</span>
             <span class="event-venue">${e.venue}</span>
             <span class="event-band">${e.band_name}</span>
             ${otherInfo}
+            ${sourceUrl}
         `;
         container.appendChild(div);
     });
 }
-
 function applySearch(events) {
     const query = document.getElementById('search').value.toLowerCase();
     const filtered = events.filter(e => {
@@ -106,7 +118,6 @@ function applySearch(events) {
     });
     render(filtered);
 }
-
 let allEvents = [];
 loadEvents().then(events => {
     allEvents = events;
