@@ -78,27 +78,48 @@ input { padding: 8px; width: 300px; margin-bottom: 20px; display: block; }
 <div id="events"></div>
 <script>
 async function loadEvents() {
-    const response = await fetch('events.json');
-    const data = await response.json();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const nextWeek = new Date();
-    nextWeek.setDate(today.getDate() + 7);
-    nextWeek.setHours(23, 59, 59, 999);
-    const filtered = data
-        .filter(e => {
-            const eventDate = new Date(e.date);
-            return eventDate >= today && eventDate <= nextWeek;
-        })
-        .sort((a, b) => {
-            const dateCompare = new Date(a.date) - new Date(b.date);
-            if (dateCompare !== 0) return dateCompare;
-            // If dates are the same, sort by time
-            const timeA = a.time || '00:00';
-            const timeB = b.time || '00:00';
-            return timeA.localeCompare(timeB);
-        });
-    return filtered;
+    try {
+        const response = await fetch('events.json');
+        if (!response.ok) {
+            throw new Error(`Failed to load events.json: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Loaded events:', data.length);
+        console.log('Sample event:', data[0]);
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const nextWeek = new Date();
+        nextWeek.setDate(today.getDate() + 7);
+        nextWeek.setHours(23, 59, 59, 999);
+        
+        console.log('Filtering for dates:', today, 'to', nextWeek);
+        
+        const filtered = data
+            .filter(e => {
+                const eventDate = new Date(e.date);
+                return eventDate >= today && eventDate <= nextWeek;
+            })
+            .sort((a, b) => {
+                const dateCompare = new Date(a.date) - new Date(b.date);
+                if (dateCompare !== 0) return dateCompare;
+                // If dates are the same, sort by time
+                const timeA = a.time || '00:00';
+                const timeB = b.time || '00:00';
+                return timeA.localeCompare(timeB);
+            });
+        
+        console.log('Filtered events:', filtered.length);
+        if (filtered.length > 0) {
+            console.log('First filtered event:', filtered[0]);
+        }
+        
+        return filtered;
+    } catch (error) {
+        console.error('Error loading events:', error);
+        document.getElementById('events').innerHTML = `<div style="color: red; padding: 20px;">Error loading events: ${error.message}</div>`;
+        return [];
+    }
 }
 function formatDate(dateStr) {
     const date = new Date(dateStr);
@@ -120,7 +141,15 @@ function formatTime(timeStr) {
 function render(events) {
     const container = document.getElementById('events');
     container.innerHTML = '';
-    events.forEach(e => {
+    
+    console.log('Rendering', events.length, 'events');
+    
+    events.forEach((e, index) => {
+        if (index === 0) {
+            console.log('First event data:', e);
+            console.log('First event location:', e.location);
+        }
+        
         const div = document.createElement('div');
         div.className = 'event';
         const otherInfo = e.other_info ? `<span class="event-info">${e.other_info}</span>` : '<span class="event-info">-</span>';
@@ -151,6 +180,8 @@ function render(events) {
         `;
         container.appendChild(div);
     });
+    
+    console.log('Render complete');
 }
 function applySearch(events) {
     const query = document.getElementById('search').value.toLowerCase();
