@@ -93,7 +93,16 @@ function render(events) {
         const div = document.createElement('div');
         div.className = 'event';
         const otherInfo = e.other_info ? `<span class="event-info">${e.other_info}</span>` : '';
-        const sourceUrl = e.source_url ? `<a href="${e.source_url}" target="_blank" class="event-source">Link</a>` : '';
+        let sourceUrl = '';
+        if (e.source_url) {
+            try {
+                const url = new URL(e.source_url);
+                const displayUrl = url.hostname.replace('www.', '') + url.pathname.substring(0, 20);
+                sourceUrl = `<a href="${e.source_url}" target="_blank" class="event-source">${displayUrl}${url.pathname.length > 20 ? '...' : ''}</a>`;
+            } catch {
+                sourceUrl = `<a href="${e.source_url}" target="_blank" class="event-source">${e.source_url.substring(0, 30)}...</a>`;
+            }
+        }
         div.innerHTML = `
             <span class="event-date">${formatDate(e.date)}</span>
             <span class="event-venue">${e.venue}</span>
